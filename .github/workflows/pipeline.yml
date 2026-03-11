@@ -3,7 +3,7 @@ name: Procesar reuniones proyectos
 on:
   push:
     paths:
-      - "input/*.xlsx"
+      - "input/Reuniones.xlsx"
 
 jobs:
 
@@ -25,26 +25,14 @@ jobs:
         run: |
           pip install pandas openpyxl
 
-      - name: Calcular calendario teorico
+      - name: Ejecutar procesamiento
         run: |
-          if [ -f input/ProyectosBogota.xlsx ]; then
-            python scripts/calcular_teorico.py
-          else
-            echo "ProyectosBogota.xlsx no existe, se omite cálculo teórico"
-          fi
+          python scripts/procesar_datos.py
 
-      - name: Procesar reuniones reales
-        run: |
-          if [ -f input/Reuniones.xlsx ]; then
-            python scripts/procesar_reuniones.py
-          else
-            echo "Reuniones.xlsx no existe, se omite procesamiento"
-          fi
-
-      - name: Guardar resultados en el repo
+      - name: Guardar resultados
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add output/*.xlsx || true
+          git add output/*.xlsx
           git diff --cached --quiet || git commit -m "Actualizar resultados reuniones"
-          git push || true
+          git push
