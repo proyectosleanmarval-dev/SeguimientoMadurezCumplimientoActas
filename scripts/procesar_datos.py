@@ -4,13 +4,14 @@ import calendar
 import os
 
 # ==================================
-# ARCHIVO
+# ARCHIVO DE ENTRADA
 # ==================================
 
 archivo = "input/Reuniones.xlsx"
 
 salida_teorico = "output/calendario_teorico.xlsx"
 salida_real = "output/calendario_real.xlsx"
+salida_comparado = "output/calendario_comparado.xlsx"
 
 # ==================================
 # PARAMETROS
@@ -29,14 +30,22 @@ festivos = [pd.to_datetime(f) for f in festivos]
 # LEER HOJAS
 # ==================================
 
-print("Leyendo archivo")
+print("Leyendo archivo de entrada...")
 
 df_proyectos = pd.read_excel(archivo, sheet_name="ProyectosBogota")
 df_intermedia = pd.read_excel(archivo, sheet_name="ReunionesIntermedias")
 df_semanal = pd.read_excel(archivo, sheet_name="ReunionesSemanales")
 
 # ==================================
-# MAPA DIAS
+# NORMALIZAR PROYECTOS
+# ==================================
+
+df_proyectos["Proyecto"] = df_proyectos["Proyecto"].str.upper()
+df_intermedia["Proyecto"] = df_intermedia["Proyecto"].str.upper()
+df_semanal["Proyecto"] = df_semanal["Proyecto"].str.upper()
+
+# ==================================
+# MAPA DE DIAS
 # ==================================
 
 mapa_dias = {
@@ -52,7 +61,7 @@ mapa_dias = {
 }
 
 # ==================================
-# CALENDARIO MES
+# CALENDARIO DEL MES
 # ==================================
 
 fechas_mes = pd.date_range(
@@ -125,20 +134,19 @@ def calcular_posibles(dia_base):
     return ", ".join([f.strftime("%Y-%m-%d") for f in posibles])
 
 # ==================================
-# CALENDARIO TEORICO
+# CALCULAR CALENDARIO TEORICO
 # ==================================
 
-print("Calculando calendario teorico")
+print("Calculando calendario teórico...")
 
 df_proyectos["PosibleIntermedia"] = df_proyectos["DiaIntermedia"].apply(calcular_posibles)
 df_proyectos["PosibleSemanal"] = df_proyectos["DiaSemanal"].apply(calcular_posibles)
 
 # ==================================
-# LIMPIEZA REUNIONES
+# PROCESAR REUNIONES REALES
 # ==================================
 
-df_intermedia["Proyecto"] = df_intermedia["Proyecto"].str.upper()
-df_semanal["Proyecto"] = df_semanal["Proyecto"].str.upper()
+print("Procesando reuniones reales...")
 
 df_intermedia["Fecha de Fin"] = pd.to_datetime(df_intermedia["Fecha de Fin"], errors="coerce")
 df_semanal["Fecha de Fin"] = pd.to_datetime(df_semanal["Fecha de Fin"], errors="coerce")
@@ -157,7 +165,7 @@ df_semanal = df_semanal[
 ]
 
 # ==================================
-# AGRUPAR REUNIONES
+# AGRUPAR INTERMEDIAS
 # ==================================
 
 intermedia = (
@@ -170,6 +178,10 @@ intermedia = (
 
 intermedia.columns = ["Proyecto", "Fechas_Intermedia"]
 
+# ==================================
+# AGRUPAR SEMANALES
+# ==================================
+
 semanal = (
     df_semanal
     .sort_values("Fecha de Fin")
@@ -180,15 +192,46 @@ semanal = (
 
 semanal.columns = ["Proyecto", "Fechas_Semanal"]
 
-resultado_real = pd.merge(intermedia, semanal, on="Proyecto", how="outer")
+# ==================================
+# UNIR RESULTADOS REALES
+# ==================================
+
+resultado_real = pd.merge(
+    intermedia,
+    semanal,
+    on="Proyecto",
+    how="outer"
+)
 
 # ==================================
-# GUARDAR
+# CREAR CARPETA OUTPUT
 # ==================================
 
 os.makedirs("output", exist_ok=True)
 
+# ==================================
+# GUARDAR RESULTADOS BASE
+# ==================================
+
 df_proyectos.to_excel(salida_teorico, index=False)
 resultado_real.to_excel(salida_real, index=False)
 
-print("Archivos generados")
+print("Archivos base generados")
+
+# ==================================
+# FULL JOIN TEORICO VS REAL
+# ==================================
+
+print("Generando comparación...")
+
+comparacion = pd.merge(
+    df_proyectos,
+    resultado_real,
+    on="Proyecto",
+    how="outer"
+)
+
+comparacion.to_excel(salida_comparado, index=False)
+
+print("Archivo generado:", salida_comparado)
+print("Proceso finalizado correctamente")
