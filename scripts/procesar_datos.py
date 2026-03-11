@@ -30,14 +30,14 @@ festivos = [pd.to_datetime(f) for f in festivos]
 # LEER HOJAS
 # ==================================
 
-print("Leyendo archivo de entrada...")
+print("Leyendo archivo...")
 
 df_proyectos = pd.read_excel(archivo, sheet_name="ProyectosBogota")
 df_intermedia = pd.read_excel(archivo, sheet_name="ReunionesIntermedias")
 df_semanal = pd.read_excel(archivo, sheet_name="ReunionesSemanales")
 
 # ==================================
-# NORMALIZAR PROYECTOS
+# NORMALIZAR PROYECTO
 # ==================================
 
 df_proyectos["Proyecto"] = df_proyectos["Proyecto"].str.upper()
@@ -45,7 +45,7 @@ df_intermedia["Proyecto"] = df_intermedia["Proyecto"].str.upper()
 df_semanal["Proyecto"] = df_semanal["Proyecto"].str.upper()
 
 # ==================================
-# MAPA DE DIAS
+# MAPA DIAS
 # ==================================
 
 mapa_dias = {
@@ -61,7 +61,7 @@ mapa_dias = {
 }
 
 # ==================================
-# CALENDARIO DEL MES
+# CALENDARIO MES
 # ==================================
 
 fechas_mes = pd.date_range(
@@ -134,7 +134,7 @@ def calcular_posibles(dia_base):
     return ", ".join([f.strftime("%Y-%m-%d") for f in posibles])
 
 # ==================================
-# CALCULAR CALENDARIO TEORICO
+# CALENDARIO TEORICO
 # ==================================
 
 print("Calculando calendario teórico...")
@@ -143,10 +143,8 @@ df_proyectos["PosibleIntermedia"] = df_proyectos["DiaIntermedia"].apply(calcular
 df_proyectos["PosibleSemanal"] = df_proyectos["DiaSemanal"].apply(calcular_posibles)
 
 # ==================================
-# PROCESAR REUNIONES REALES
+# REUNIONES REALES
 # ==================================
-
-print("Procesando reuniones reales...")
 
 df_intermedia["Fecha de Fin"] = pd.to_datetime(df_intermedia["Fecha de Fin"], errors="coerce")
 df_semanal["Fecha de Fin"] = pd.to_datetime(df_semanal["Fecha de Fin"], errors="coerce")
@@ -193,7 +191,7 @@ semanal = (
 semanal.columns = ["Proyecto", "Fechas_Semanal"]
 
 # ==================================
-# UNIR RESULTADOS REALES
+# RESULTADO REAL
 # ==================================
 
 resultado_real = pd.merge(
@@ -204,25 +202,8 @@ resultado_real = pd.merge(
 )
 
 # ==================================
-# CREAR CARPETA OUTPUT
-# ==================================
-
-os.makedirs("output", exist_ok=True)
-
-# ==================================
-# GUARDAR RESULTADOS BASE
-# ==================================
-
-df_proyectos.to_excel(salida_teorico, index=False)
-resultado_real.to_excel(salida_real, index=False)
-
-print("Archivos base generados")
-
-# ==================================
 # FULL JOIN TEORICO VS REAL
 # ==================================
-
-print("Generando comparación...")
 
 comparacion = pd.merge(
     df_proyectos,
@@ -231,7 +212,44 @@ comparacion = pd.merge(
     how="outer"
 )
 
+# ==================================
+# FUNCION COINCIDENCIAS
+# ==================================
+
+def coincidencias(lista1, lista2):
+
+    if pd.isna(lista1) or pd.isna(lista2):
+        return ""
+
+    set1 = set([x.strip() for x in str(lista1).split(",")])
+    set2 = set([x.strip() for x in str(lista2).split(",")])
+
+    inter = sorted(set1.intersection(set2))
+
+    return ", ".join(inter)
+
+# ==================================
+# CALCULAR COINCIDENCIAS
+# ==================================
+
+comparacion["Coincidencias_Intermedia"] = comparacion.apply(
+    lambda row: coincidencias(row["PosibleIntermedia"], row["Fechas_Intermedia"]),
+    axis=1
+)
+
+comparacion["Coincidencias_Semanal"] = comparacion.apply(
+    lambda row: coincidencias(row["PosibleSemanal"], row["Fechas_Semanal"]),
+    axis=1
+)
+
+# ==================================
+# GUARDAR RESULTADOS
+# ==================================
+
+os.makedirs("output", exist_ok=True)
+
+df_proyectos.to_excel(salida_teorico, index=False)
+resultado_real.to_excel(salida_real, index=False)
 comparacion.to_excel(salida_comparado, index=False)
 
-print("Archivo generado:", salida_comparado)
-print("Proceso finalizado correctamente")
+print("Archivos generados correctamente")
