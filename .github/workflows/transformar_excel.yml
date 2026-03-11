@@ -29,8 +29,11 @@ jobs:
         run: |
           python script/procesar_reuniones.py
 
-      - name: Subir resultado
-        uses: actions/upload-artifact@v4
-        with:
-          name: resultado_reuniones
-          path: output/resultado_reuniones.xlsx
+      # NUEVO PASO
+      - name: Guardar resultado en el repositorio
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add output/resultado_reuniones.xlsx
+          git commit -m "Actualizar resultado de reuniones"
+          git push
