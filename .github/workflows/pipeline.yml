@@ -27,16 +27,24 @@ jobs:
 
       - name: Calcular calendario teorico
         run: |
-          python scripts/calcular_teorico.py
+          if [ -f input/ProyectosBogota.xlsx ]; then
+            python scripts/calcular_teorico.py
+          else
+            echo "ProyectosBogota.xlsx no existe, se omite cálculo teórico"
+          fi
 
       - name: Procesar reuniones reales
         run: |
-          python scripts/procesar_reuniones.py
+          if [ -f input/Reuniones.xlsx ]; then
+            python scripts/procesar_reuniones.py
+          else
+            echo "Reuniones.xlsx no existe, se omite procesamiento"
+          fi
 
-      - name: Guardar resultados en el repositorio
+      - name: Guardar resultados en el repo
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add output/*.xlsx
+          git add output/*.xlsx || true
           git diff --cached --quiet || git commit -m "Actualizar resultados reuniones"
-          git push
+          git push || true
