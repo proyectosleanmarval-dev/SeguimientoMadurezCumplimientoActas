@@ -21,7 +21,7 @@ ANIO = 2026
 MES = 3
 
 festivos = [
-    "2026-03-11"
+    "2026-03-09"
 ]
 
 festivos = [pd.to_datetime(f) for f in festivos]
@@ -94,6 +94,10 @@ def siguiente_habil(fecha):
     return siguiente
 
 
+# ==================================
+# CALCULO FECHAS POSIBLES
+# ==================================
+
 def calcular_posibles(dia_base):
 
     if pd.isna(dia_base):
@@ -112,26 +116,36 @@ def calcular_posibles(dia_base):
 
         if fecha.weekday() == numero_dia:
 
-            dias_extra = 1
-
+            # CASO FESTIVO
             if fecha in festivos:
-                dias_extra = 2
 
-            actual = fecha
+                actual = fecha
+                contador = 0
 
-            for i in range(dias_extra + 1):
+                while contador < 2:
 
-                if es_habil(actual):
+                    actual = siguiente_habil(actual)
+
+                    if actual.month != MES:
+                        break
+
                     posibles.append(actual)
+                    contador += 1
 
-                actual = siguiente_habil(actual)
+            # CASO NORMAL
+            else:
 
-                if actual.month != MES:
-                    break
+                posibles.append(fecha)
+
+                siguiente = siguiente_habil(fecha)
+
+                if siguiente.month == MES:
+                    posibles.append(siguiente)
 
     posibles = sorted(set(posibles))
 
     return ", ".join([f.strftime("%Y-%m-%d") for f in posibles])
+
 
 # ==================================
 # CALENDARIO TEORICO
