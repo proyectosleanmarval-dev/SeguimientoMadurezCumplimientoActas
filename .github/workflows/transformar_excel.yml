@@ -1,0 +1,36 @@
+name: Transformar Excel Reuniones
+
+on:
+  push:
+    paths:
+      - "input/ProyectosBogota.xlsx"
+
+jobs:
+
+  procesar:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: |
+          pip install pandas openpyxl
+
+      - name: Ejecutar script
+        run: |
+          python script/procesar_reuniones.py
+
+      - name: Subir resultado
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultado_reuniones
+          path: output/resultado_reuniones.xlsx
