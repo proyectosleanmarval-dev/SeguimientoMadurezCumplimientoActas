@@ -113,6 +113,9 @@ def calcular_indicador(posibles, coincidencias):
     """
     Calcula el indicador de cumplimiento:
     ((Cantidad de fechas posibles / 2) / Cantidad de coincidencias) * 100
+    
+    Ejemplo: Si hay 10 fechas posibles y 5 coincidencias:
+    ((10/2) / 5) * 100 = (5/5) * 100 = 100%
     """
     count_posibles = contar_fechas(posibles)
     count_coincidencias = contar_fechas(coincidencias)
@@ -121,9 +124,9 @@ def calcular_indicador(posibles, coincidencias):
     if count_posibles == 0 or count_coincidencias == 0:
         return 0.0
     
-    # Calcular: (posibles/2) / coincidencias * 100
-    # Esto es equivalente a: (posibles * 100) / (2 * coincidencias)
-    indicador = (count_posibles * 100) / (2 * count_coincidencias)
+    # Calcular explícitamente: (posibles/2) / coincidencias * 100
+    posibles_entre_dos = count_posibles / 2
+    indicador = (posibles_entre_dos / count_coincidencias) * 100
     
     # Redondear a 2 decimales
     return round(indicador, 2)
