@@ -19,7 +19,7 @@ salida_comparado = "output/calendario_comparado.xlsx"
 # ==================================
 
 ANIO = 2026
-MES = 3
+MES = 2
 
 festivos = [
     "2026-03-11"
