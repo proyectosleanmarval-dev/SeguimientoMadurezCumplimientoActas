@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import timedelta
 import calendar
 import os
+import math
 
 # ==================================
 # ARCHIVO DE ENTRADA
@@ -99,6 +100,33 @@ def siguiente_habil(fecha):
     while not es_habil(siguiente):
         siguiente += timedelta(days=1)
     return siguiente
+
+def contar_fechas(lista_fechas_str):
+    """
+    Cuenta el número de fechas en una cadena separada por comas
+    """
+    if pd.isna(lista_fechas_str) or lista_fechas_str == "":
+        return 0
+    return len([x.strip() for x in str(lista_fechas_str).split(",") if x.strip()])
+
+def calcular_indicador(posibles, coincidencias):
+    """
+    Calcula el indicador de cumplimiento:
+    ((Cantidad de fechas posibles / 2) / Cantidad de coincidencias) * 100
+    """
+    count_posibles = contar_fechas(posibles)
+    count_coincidencias = contar_fechas(coincidencias)
+    
+    # Evitar división por cero
+    if count_posibles == 0 or count_coincidencias == 0:
+        return 0.0
+    
+    # Calcular: (posibles/2) / coincidencias * 100
+    # Esto es equivalente a: (posibles * 100) / (2 * coincidencias)
+    indicador = (count_posibles * 100) / (2 * count_coincidencias)
+    
+    # Redondear a 2 decimales
+    return round(indicador, 2)
 
 # ==================================
 # CALCULO FECHAS POSIBLES
@@ -233,8 +261,8 @@ def coincidencias(lista1, lista2):
     if pd.isna(lista1) or pd.isna(lista2):
         return ""
     
-    set1 = set([x.strip() for x in str(lista1).split(",")])
-    set2 = set([x.strip() for x in str(lista2).split(",")])
+    set1 = set([x.strip() for x in str(lista1).split(",") if x.strip()])
+    set2 = set([x.strip() for x in str(lista2).split(",") if x.strip()])
     
     inter = sorted(set1.intersection(set2))
     
@@ -255,6 +283,28 @@ comparacion["Coincidencias_Semanal"] = comparacion.apply(
 )
 
 # ==================================
+# CALCULAR INDICADORES DE CUMPLIMIENTO
+# ==================================
+
+print("Calculando indicadores de cumplimiento...")
+
+comparacion["Indicador_Intermedia"] = comparacion.apply(
+    lambda row: calcular_indicador(row["PosibleIntermedia"], row["Coincidencias_Intermedia"]),
+    axis=1
+)
+
+comparacion["Indicador_Semanal"] = comparacion.apply(
+    lambda row: calcular_indicador(row["PosibleSemanal"], row["Coincidencias_Semanal"]),
+    axis=1
+)
+
+# Agregar también los conteos para referencia (opcional)
+comparacion["Count_Posibles_Intermedia"] = comparacion["PosibleIntermedia"].apply(contar_fechas)
+comparacion["Count_Coincidencias_Intermedia"] = comparacion["Coincidencias_Intermedia"].apply(contar_fechas)
+comparacion["Count_Posibles_Semanal"] = comparacion["PosibleSemanal"].apply(contar_fechas)
+comparacion["Count_Coincidencias_Semanal"] = comparacion["Coincidencias_Semanal"].apply(contar_fechas)
+
+# ==================================
 # GUARDAR RESULTADOS
 # ==================================
 
@@ -265,3 +315,6 @@ resultado_real.to_excel(salida_real, index=False)
 comparacion.to_excel(salida_comparado, index=False)
 
 print("Archivos generados correctamente")
+print("Se agregaron las columnas de indicadores:")
+print("- Indicador_Intermedia: ((#Posibles/2) / #Coincidencias) * 100")
+print("- Indicador_Semanal: ((#Posibles/2) / #Coincidencias) * 100")
