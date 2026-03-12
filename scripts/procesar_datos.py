@@ -75,21 +75,18 @@ fechas_mes = pd.date_range(
 
 def es_habil(fecha):
     """Verifica si una fecha es hábil (no domingo y no festivo)"""
-    if fecha.weekday() == 6:  # Domingo
+    if fecha.weekday() == 6:
         return False
     if fecha in festivos:
         return False
     return True
 
 def obtener_dos_siguientes(fecha):
-    """
-    Obtiene los dos días siguientes a una fecha dada
-    (sin importar si son hábiles o no)
-    """
+    """Obtiene los dos días siguientes a una fecha dada"""
     siguientes = []
-    for i in range(1, 3):  # i = 1, 2
+    for i in range(1, 3):
         siguiente = fecha + timedelta(days=i)
-        if siguiente.month == MES:  # Solo si está en el mismo mes
+        if siguiente.month == MES:
             siguientes.append(siguiente)
     return siguientes
 
@@ -105,11 +102,7 @@ def siguiente_habil(fecha):
 # ==================================
 
 def calcular_posibles(dia_base):
-    """
-    Calcula las fechas posibles para reuniones basado en el día de la semana.
-    Si el día estipulado es festivo, considera los dos días siguientes
-    (sin importar si son hábiles) y excluye el día festivo.
-    """
+
     if pd.isna(dia_base):
         return ""
     
@@ -122,25 +115,26 @@ def calcular_posibles(dia_base):
     posibles = []
     
     for fecha in fechas_mes:
+        
         if fecha.weekday() == numero_dia:
             
-            # Verificar si el día estipulado es festivo
             if fecha in festivos:
-                # Caso festivo: tomar los dos días siguientes (sin filtrar por hábiles)
+                
                 dias_siguientes = obtener_dos_siguientes(fecha)
+                
                 for dia_sig in dias_siguientes:
-                    if dia_sig.month == MES:  # Verificar que esté en el mismo mes
+                    if dia_sig.month == MES:
                         posibles.append(dia_sig)
+            
             else:
-                # Caso normal: tomar el día y el siguiente hábil
+                
                 posibles.append(fecha)
                 
-                # Obtener siguiente hábil
                 siguiente = siguiente_habil(fecha)
+                
                 if siguiente.month == MES:
                     posibles.append(siguiente)
     
-    # Eliminar duplicados y ordenar
     posibles = sorted(set(posibles))
     
     return ", ".join([f.strftime("%Y-%m-%d") for f in posibles])
@@ -153,6 +147,25 @@ print("Calculando calendario teórico...")
 
 df_proyectos["PosibleIntermedia"] = df_proyectos["DiaIntermedia"].apply(calcular_posibles)
 df_proyectos["PosibleSemanal"] = df_proyectos["DiaSemanal"].apply(calcular_posibles)
+
+# ==================================
+# CONTEO DE FECHAS POSIBLES
+# ==================================
+
+def contar_fechas_y_dividir(valor):
+
+    if pd.isna(valor) or valor == "":
+        return 0
+    
+    lista = [x.strip() for x in str(valor).split(",") if x.strip() != ""]
+    
+    conteo = len(lista)
+    
+    return conteo // 2
+
+
+df_proyectos["ConteoIntermedia"] = df_proyectos["PosibleIntermedia"].apply(contar_fechas_y_dividir)
+df_proyectos["ConteoSemanal"] = df_proyectos["PosibleSemanal"].apply(contar_fechas_y_dividir)
 
 # ==================================
 # REUNIONES REALES
@@ -229,7 +242,7 @@ comparacion = pd.merge(
 # ==================================
 
 def coincidencias(lista1, lista2):
-    """Encuentra las fechas que coinciden entre dos listas"""
+
     if pd.isna(lista1) or pd.isna(lista2):
         return ""
     
