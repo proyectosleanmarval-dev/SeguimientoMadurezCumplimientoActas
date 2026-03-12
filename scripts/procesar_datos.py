@@ -3,7 +3,15 @@ import numpy as np
 from datetime import timedelta
 import calendar
 import os
-import matplotlib.pyplot as plt
+
+# intentar importar matplotlib (si no existe no rompe el script)
+try:
+    import matplotlib.pyplot as plt
+    GRAFICO_DISPONIBLE = True
+except ModuleNotFoundError:
+    print("matplotlib no está instalado, el gráfico no se generará.")
+    GRAFICO_DISPONIBLE = False
+
 
 # ==================================
 # ARCHIVO DE ENTRADA
@@ -23,10 +31,24 @@ ANIO = 2026
 MES = 3
 
 festivos = [
-    "2026-01-01","2026-01-12","2026-03-23","2026-04-02","2026-04-03",
-    "2026-05-01","2026-05-18","2026-06-08","2026-06-15","2026-06-29",
-    "2026-07-20","2026-08-07","2026-08-17","2026-10-12","2026-11-02",
-    "2026-11-16","2026-12-08","2026-12-25"
+    "2026-01-01",
+    "2026-01-12",
+    "2026-03-23",
+    "2026-04-02",
+    "2026-04-03",
+    "2026-05-01",
+    "2026-05-18",
+    "2026-06-08",
+    "2026-06-15",
+    "2026-06-29",
+    "2026-07-20",
+    "2026-08-07",
+    "2026-08-17",
+    "2026-10-12",
+    "2026-11-02",
+    "2026-11-16",
+    "2026-12-08",
+    "2026-12-25",
 ]
 
 festivos = [pd.to_datetime(f) for f in festivos]
@@ -54,8 +76,15 @@ df_semanal["Proyecto"] = df_semanal["Proyecto"].str.upper()
 # ==================================
 
 mapa_dias = {
-"LUNES":0,"MARTES":1,"MIERCOLES":2,"MIÉRCOLES":2,
-"JUEVES":3,"VIERNES":4,"SABADO":5,"SÁBADO":5,"DOMINGO":6
+    "LUNES":0,
+    "MARTES":1,
+    "MIERCOLES":2,
+    "MIÉRCOLES":2,
+    "JUEVES":3,
+    "VIERNES":4,
+    "SABADO":5,
+    "SÁBADO":5,
+    "DOMINGO":6
 }
 
 # ==================================
@@ -63,8 +92,8 @@ mapa_dias = {
 # ==================================
 
 fechas_mes = pd.date_range(
-start=f"{ANIO}-{MES:02d}-01",
-end=f"{ANIO}-{MES:02d}-{calendar.monthrange(ANIO, MES)[1]}"
+    start=f"{ANIO}-{MES:02d}-01",
+    end=f"{ANIO}-{MES:02d}-{calendar.monthrange(ANIO, MES)[1]}"
 )
 
 # ==================================
@@ -144,7 +173,7 @@ df_proyectos["PosibleIntermedia"] = df_proyectos["DiaIntermedia"].apply(calcular
 df_proyectos["PosibleSemanal"] = df_proyectos["DiaSemanal"].apply(calcular_posibles)
 
 # ==================================
-# CONTEO FECHAS POSIBLES
+# CONTEO DE FECHAS POSIBLES
 # ==================================
 
 def contar_fechas_y_dividir(valor):
@@ -153,7 +182,9 @@ def contar_fechas_y_dividir(valor):
         return 0
 
     lista = [x.strip() for x in str(valor).split(",") if x.strip() != ""]
-    return len(lista)//2
+
+    return len(lista) // 2
+
 
 df_proyectos["ConteoIntermedia"] = df_proyectos["PosibleIntermedia"].apply(contar_fechas_y_dividir)
 df_proyectos["ConteoSemanal"] = df_proyectos["PosibleSemanal"].apply(contar_fechas_y_dividir)
@@ -162,20 +193,20 @@ df_proyectos["ConteoSemanal"] = df_proyectos["PosibleSemanal"].apply(contar_fech
 # REUNIONES REALES
 # ==================================
 
-df_intermedia["Fecha de Fin"] = pd.to_datetime(df_intermedia["Fecha de Fin"],errors="coerce")
-df_semanal["Fecha de Fin"] = pd.to_datetime(df_semanal["Fecha de Fin"],errors="coerce")
+df_intermedia["Fecha de Fin"] = pd.to_datetime(df_intermedia["Fecha de Fin"], errors="coerce")
+df_semanal["Fecha de Fin"] = pd.to_datetime(df_semanal["Fecha de Fin"], errors="coerce")
 
-df_intermedia = df_intermedia[df_intermedia["Tipo de Reunión"].str.upper()=="INTERMEDIA"]
-df_semanal = df_semanal[df_semanal["Tipo de Reunión"].str.upper()=="SEMANAL"]
+df_intermedia = df_intermedia[df_intermedia["Tipo de Reunión"].str.upper() == "INTERMEDIA"]
+df_semanal = df_semanal[df_semanal["Tipo de Reunión"].str.upper() == "SEMANAL"]
 
 df_intermedia = df_intermedia[
-(df_intermedia["Fecha de Fin"].dt.month==MES) &
-(df_intermedia["Fecha de Fin"].dt.year==ANIO)
+    (df_intermedia["Fecha de Fin"].dt.month == MES) &
+    (df_intermedia["Fecha de Fin"].dt.year == ANIO)
 ]
 
 df_semanal = df_semanal[
-(df_semanal["Fecha de Fin"].dt.month==MES) &
-(df_semanal["Fecha de Fin"].dt.year==ANIO)
+    (df_semanal["Fecha de Fin"].dt.month == MES) &
+    (df_semanal["Fecha de Fin"].dt.year == ANIO)
 ]
 
 # ==================================
@@ -190,34 +221,34 @@ df_semanal = df_semanal.drop_duplicates(subset=["Proyecto","Fecha de Fin"])
 # ==================================
 
 intermedia = (
-df_intermedia
-.sort_values("Fecha de Fin")
-.groupby("Proyecto")["Fecha de Fin"]
-.apply(lambda x:", ".join(sorted(x.dt.strftime("%Y-%m-%d").unique())))
-.reset_index()
+    df_intermedia
+    .sort_values("Fecha de Fin")
+    .groupby("Proyecto")["Fecha de Fin"]
+    .apply(lambda x: ", ".join(sorted(x.dt.strftime("%Y-%m-%d").unique())))
+    .reset_index()
 )
 
-intermedia.columns = ["Proyecto","Fechas_Intermedia"]
+intermedia.columns = ["Proyecto", "Fechas_Intermedia"]
 
 semanal = (
-df_semanal
-.sort_values("Fecha de Fin")
-.groupby("Proyecto")["Fecha de Fin"]
-.apply(lambda x:", ".join(sorted(x.dt.strftime("%Y-%m-%d").unique())))
-.reset_index()
+    df_semanal
+    .sort_values("Fecha de Fin")
+    .groupby("Proyecto")["Fecha de Fin"]
+    .apply(lambda x: ", ".join(sorted(x.dt.strftime("%Y-%m-%d").unique())))
+    .reset_index()
 )
 
-semanal.columns = ["Proyecto","Fechas_Semanal"]
+semanal.columns = ["Proyecto", "Fechas_Semanal"]
 
 # ==================================
 # RESULTADO REAL
 # ==================================
 
 resultado_real = pd.merge(
-intermedia,
-semanal,
-on="Proyecto",
-how="outer"
+    intermedia,
+    semanal,
+    on="Proyecto",
+    how="outer"
 )
 
 # ==================================
@@ -225,17 +256,17 @@ how="outer"
 # ==================================
 
 comparacion = pd.merge(
-df_proyectos,
-resultado_real,
-on="Proyecto",
-how="outer"
+    df_proyectos,
+    resultado_real,
+    on="Proyecto",
+    how="outer"
 )
 
 # ==================================
-# COINCIDENCIAS
+# FUNCION COINCIDENCIAS
 # ==================================
 
-def coincidencias(lista1,lista2):
+def coincidencias(lista1, lista2):
 
     if pd.isna(lista1) or pd.isna(lista2):
         return ""
@@ -247,11 +278,19 @@ def coincidencias(lista1,lista2):
 
     return ", ".join(inter)
 
+# ==================================
+# CALCULAR COINCIDENCIAS
+# ==================================
+
 comparacion["Coincidencias_Intermedia"] = comparacion.apply(
-lambda row: coincidencias(row["PosibleIntermedia"],row["Fechas_Intermedia"]),axis=1)
+    lambda row: coincidencias(row["PosibleIntermedia"], row["Fechas_Intermedia"]),
+    axis=1
+)
 
 comparacion["Coincidencias_Semanal"] = comparacion.apply(
-lambda row: coincidencias(row["PosibleSemanal"],row["Fechas_Semanal"]),axis=1)
+    lambda row: coincidencias(row["PosibleSemanal"], row["Fechas_Semanal"]),
+    axis=1
+)
 
 # ==================================
 # CONTEOS
@@ -259,10 +298,11 @@ lambda row: coincidencias(row["PosibleSemanal"],row["Fechas_Semanal"]),axis=1)
 
 def contar_fechas(valor):
 
-    if pd.isna(valor) or valor=="":
+    if pd.isna(valor) or valor == "":
         return 0
 
-    lista=[x.strip() for x in str(valor).split(",") if x.strip()!=""]
+    lista = [x.strip() for x in str(valor).split(",") if x.strip() != ""]
+
     return len(lista)
 
 comparacion["ConteoCoincidenciasIntermedia"] = comparacion["Coincidencias_Intermedia"].apply(contar_fechas)
@@ -273,89 +313,86 @@ comparacion["ConteoCoincidenciasSemanal"] = comparacion["Coincidencias_Semanal"]
 # ==================================
 
 comparacion["CumplimientoIntermedia"] = np.where(
-comparacion["ConteoIntermedia"]==0,
-0,
-comparacion["ConteoCoincidenciasIntermedia"]/comparacion["ConteoIntermedia"]
+    comparacion["ConteoIntermedia"] == 0,
+    0,
+    comparacion["ConteoCoincidenciasIntermedia"] / comparacion["ConteoIntermedia"]
 )
 
 comparacion["CumplimientoSemanal"] = np.where(
-comparacion["ConteoSemanal"]==0,
-0,
-comparacion["ConteoCoincidenciasSemanal"]/comparacion["ConteoSemanal"]
+    comparacion["ConteoSemanal"] == 0,
+    0,
+    comparacion["ConteoCoincidenciasSemanal"] / comparacion["ConteoSemanal"]
 )
 
 # ==================================
-# GUARDAR EXCEL
+# GUARDAR RESULTADOS
 # ==================================
 
-os.makedirs("output",exist_ok=True)
+os.makedirs("output", exist_ok=True)
 
-df_proyectos.to_excel(salida_teorico,index=False)
-resultado_real.to_excel(salida_real,index=False)
-comparacion.to_excel(salida_comparado,index=False)
+df_proyectos.to_excel(salida_teorico, index=False)
+resultado_real.to_excel(salida_real, index=False)
+comparacion.to_excel(salida_comparado, index=False)
 
 # ==================================
-# GRAFICO DASHBOARD
+# GRAFICO (SI MATPLOTLIB EXISTE)
 # ==================================
 
-print("Generando gráfico...")
+if GRAFICO_DISPONIBLE:
 
-df_grafico = comparacion.copy()
-df_grafico = df_grafico[df_grafico["Estado"].str.upper()=="EJECUCIÓN"]
+    print("Generando gráfico...")
 
-df_grafico["CumplimientoSemanal"]*=100
-df_grafico["CumplimientoIntermedia"]*=100
+    df_grafico = comparacion.copy()
+    df_grafico = df_grafico[df_grafico["Estado"].str.upper() == "EJECUCIÓN"]
 
-df_grafico["Promedio"]=(
-df_grafico["CumplimientoSemanal"]+
-df_grafico["CumplimientoIntermedia"]
-)/2
+    df_grafico["CumplimientoSemanal"] *= 100
+    df_grafico["CumplimientoIntermedia"] *= 100
 
-df_grafico=df_grafico.sort_values("Promedio")
+    df_grafico["Promedio"] = (
+        df_grafico["CumplimientoSemanal"] +
+        df_grafico["CumplimientoIntermedia"]
+    ) / 2
 
-def color(v):
-    if v<50:
-        return "red"
-    elif v<=80:
-        return "gold"
-    else:
-        return "green"
+    df_grafico = df_grafico.sort_values("Promedio")
 
-proyectos=df_grafico["Proyecto"]
+    def color(v):
+        if v < 50:
+            return "red"
+        elif v <= 80:
+            return "gold"
+        else:
+            return "green"
 
-y=np.arange(len(proyectos))
-h=0.35
+    proyectos = df_grafico["Proyecto"]
 
-fig,ax=plt.subplots(figsize=(12,max(6,len(proyectos)*0.6)))
+    y = np.arange(len(proyectos))
+    h = 0.35
 
-b1=ax.barh(y-h/2,df_grafico["CumplimientoSemanal"],h,
-color=[color(v) for v in df_grafico["CumplimientoSemanal"]],
-label="Semanal")
+    fig, ax = plt.subplots(figsize=(12, max(6, len(proyectos)*0.6)))
 
-b2=ax.barh(y+h/2,df_grafico["CumplimientoIntermedia"],h,
-color=[color(v) for v in df_grafico["CumplimientoIntermedia"]],
-label="Intermedia")
+    b1 = ax.barh(y-h/2, df_grafico["CumplimientoSemanal"], h,
+                 color=[color(v) for v in df_grafico["CumplimientoSemanal"]],
+                 label="Semanal")
 
-for bars in [b1,b2]:
-    for bar in bars:
-        w=bar.get_width()
-        ax.text(w+1,bar.get_y()+bar.get_height()/2,f"{w:.0f}%",va="center")
+    b2 = ax.barh(y+h/2, df_grafico["CumplimientoIntermedia"], h,
+                 color=[color(v) for v in df_grafico["CumplimientoIntermedia"]],
+                 label="Intermedia")
 
-ax.axvline(80,linestyle="--",label="Meta 80%")
+    ax.axvline(80, linestyle="--", label="Meta 80%")
 
-ax.set_yticks(y)
-ax.set_yticklabels(proyectos)
+    ax.set_yticks(y)
+    ax.set_yticklabels(proyectos)
 
-ax.set_xlim(0,100)
-ax.set_xlabel("Cumplimiento (%)")
-ax.set_title("Cumplimiento de Reuniones por Proyecto")
+    ax.set_xlim(0,100)
+    ax.set_xlabel("Cumplimiento (%)")
+    ax.set_title("Cumplimiento de Reuniones por Proyecto")
 
-ax.legend()
+    ax.legend()
 
-plt.tight_layout()
+    plt.tight_layout()
 
-plt.savefig("output/grafico_cumplimiento_proyectos.png")
+    plt.savefig("output/grafico_cumplimiento_proyectos.png")
 
-plt.close()
+    plt.close()
 
 print("Archivos generados correctamente")
