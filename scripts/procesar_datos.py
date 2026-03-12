@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from datetime import timedelta
 import calendar
 import os
@@ -146,7 +147,7 @@ df_proyectos["PosibleIntermedia"] = df_proyectos["DiaIntermedia"].apply(calcular
 df_proyectos["PosibleSemanal"] = df_proyectos["DiaSemanal"].apply(calcular_posibles)
 
 # ==================================
-# CONTEO DE FECHAS POSIBLES (DIVIDIDO)
+# CONTEO DE FECHAS POSIBLES
 # ==================================
 
 def contar_fechas_y_dividir(valor):
@@ -263,7 +264,7 @@ comparacion["Coincidencias_Semanal"] = comparacion.apply(
 )
 
 # ==================================
-# CONTEO EXACTO DE COINCIDENCIAS
+# CONTEO DE COINCIDENCIAS
 # ==================================
 
 def contar_fechas(valor):
@@ -278,6 +279,22 @@ def contar_fechas(valor):
 
 comparacion["ConteoCoincidenciasIntermedia"] = comparacion["Coincidencias_Intermedia"].apply(contar_fechas)
 comparacion["ConteoCoincidenciasSemanal"] = comparacion["Coincidencias_Semanal"].apply(contar_fechas)
+
+# ==================================
+# CALCULO DE CUMPLIMIENTO
+# ==================================
+
+comparacion["CumplimientoIntermedia"] = np.where(
+    comparacion["ConteoIntermedia"] == 0,
+    0,
+    comparacion["ConteoCoincidenciasIntermedia"] / comparacion["ConteoIntermedia"]
+)
+
+comparacion["CumplimientoSemanal"] = np.where(
+    comparacion["ConteoSemanal"] == 0,
+    0,
+    comparacion["ConteoCoincidenciasSemanal"] / comparacion["ConteoSemanal"]
+)
 
 # ==================================
 # GUARDAR RESULTADOS
