@@ -117,7 +117,7 @@ def calcular_indicador(posibles, coincidencias):
     Ejemplo: Si hay 10 fechas posibles y 5 coincidencias:
     ((10/2) / 5) * 100 = (5/5) * 100 = 100%
     """
-    count_posibles = contar_fechas(posibles)
+    count_posibles = contar_fechas(posibles)/2
     count_coincidencias = contar_fechas(coincidencias)
     
     # Evitar división por cero
