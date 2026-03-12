@@ -74,78 +74,76 @@ fechas_mes = pd.date_range(
 # ==================================
 
 def es_habil(fecha):
-
-    if fecha.weekday() == 6:
+    """Verifica si una fecha es hábil (no domingo y no festivo)"""
+    if fecha.weekday() == 6:  # Domingo
         return False
-
     if fecha in festivos:
         return False
-
     return True
 
+def obtener_dos_siguientes(fecha):
+    """
+    Obtiene los dos días siguientes a una fecha dada
+    (sin importar si son hábiles o no)
+    """
+    siguientes = []
+    for i in range(1, 3):  # i = 1, 2
+        siguiente = fecha + timedelta(days=i)
+        if siguiente.month == MES:  # Solo si está en el mismo mes
+            siguientes.append(siguiente)
+    return siguientes
 
 def siguiente_habil(fecha):
-
+    """Encuentra el siguiente día hábil"""
     siguiente = fecha + timedelta(days=1)
-
     while not es_habil(siguiente):
         siguiente += timedelta(days=1)
-
     return siguiente
-
 
 # ==================================
 # CALCULO FECHAS POSIBLES
 # ==================================
 
 def calcular_posibles(dia_base):
-
+    """
+    Calcula las fechas posibles para reuniones basado en el día de la semana.
+    Si el día estipulado es festivo, considera los dos días siguientes
+    (sin importar si son hábiles) y excluye el día festivo.
+    """
     if pd.isna(dia_base):
         return ""
-
+    
     dia_base = str(dia_base).upper().strip()
-
+    
     if dia_base not in mapa_dias:
         return ""
-
+    
     numero_dia = mapa_dias[dia_base]
-
     posibles = []
-
+    
     for fecha in fechas_mes:
-
         if fecha.weekday() == numero_dia:
-
-            # CASO FESTIVO
+            
+            # Verificar si el día estipulado es festivo
             if fecha in festivos:
-
-                actual = fecha
-                contador = 0
-
-                while contador < 2:
-
-                    actual = siguiente_habil(actual)
-
-                    if actual.month != MES:
-                        break
-
-                    posibles.append(actual)
-                    contador += 1
-
-            # CASO NORMAL
+                # Caso festivo: tomar los dos días siguientes (sin filtrar por hábiles)
+                dias_siguientes = obtener_dos_siguientes(fecha)
+                for dia_sig in dias_siguientes:
+                    if dia_sig.month == MES:  # Verificar que esté en el mismo mes
+                        posibles.append(dia_sig)
             else:
-
+                # Caso normal: tomar el día y el siguiente hábil
                 posibles.append(fecha)
-
+                
+                # Obtener siguiente hábil
                 siguiente = siguiente_habil(fecha)
-
                 if siguiente.month == MES:
                     posibles.append(siguiente)
-
+    
+    # Eliminar duplicados y ordenar
     posibles = sorted(set(posibles))
-
+    
     return ", ".join([f.strftime("%Y-%m-%d") for f in posibles])
-
 
 # ==================================
 # CALENDARIO TEORICO
@@ -231,15 +229,15 @@ comparacion = pd.merge(
 # ==================================
 
 def coincidencias(lista1, lista2):
-
+    """Encuentra las fechas que coinciden entre dos listas"""
     if pd.isna(lista1) or pd.isna(lista2):
         return ""
-
+    
     set1 = set([x.strip() for x in str(lista1).split(",")])
     set2 = set([x.strip() for x in str(lista2).split(",")])
-
+    
     inter = sorted(set1.intersection(set2))
-
+    
     return ", ".join(inter)
 
 # ==================================
