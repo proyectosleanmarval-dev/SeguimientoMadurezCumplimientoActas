@@ -74,7 +74,6 @@ fechas_mes = pd.date_range(
 # ==================================
 
 def es_habil(fecha):
-    """Verifica si una fecha es hábil (no domingo y no festivo)"""
     if fecha.weekday() == 6:
         return False
     if fecha in festivos:
@@ -82,7 +81,6 @@ def es_habil(fecha):
     return True
 
 def obtener_dos_siguientes(fecha):
-    """Obtiene los dos días siguientes a una fecha dada"""
     siguientes = []
     for i in range(1, 3):
         siguiente = fecha + timedelta(days=i)
@@ -91,7 +89,6 @@ def obtener_dos_siguientes(fecha):
     return siguientes
 
 def siguiente_habil(fecha):
-    """Encuentra el siguiente día hábil"""
     siguiente = fecha + timedelta(days=1)
     while not es_habil(siguiente):
         siguiente += timedelta(days=1)
@@ -149,7 +146,7 @@ df_proyectos["PosibleIntermedia"] = df_proyectos["DiaIntermedia"].apply(calcular
 df_proyectos["PosibleSemanal"] = df_proyectos["DiaSemanal"].apply(calcular_posibles)
 
 # ==================================
-# CONTEO DE FECHAS POSIBLES
+# CONTEO DE FECHAS POSIBLES (DIVIDIDO)
 # ==================================
 
 def contar_fechas_y_dividir(valor):
@@ -159,9 +156,7 @@ def contar_fechas_y_dividir(valor):
     
     lista = [x.strip() for x in str(valor).split(",") if x.strip() != ""]
     
-    conteo = len(lista)
-    
-    return conteo // 2
+    return len(lista) // 2
 
 
 df_proyectos["ConteoIntermedia"] = df_proyectos["PosibleIntermedia"].apply(contar_fechas_y_dividir)
@@ -266,6 +261,23 @@ comparacion["Coincidencias_Semanal"] = comparacion.apply(
     lambda row: coincidencias(row["PosibleSemanal"], row["Fechas_Semanal"]),
     axis=1
 )
+
+# ==================================
+# CONTEO EXACTO DE COINCIDENCIAS
+# ==================================
+
+def contar_fechas(valor):
+
+    if pd.isna(valor) or valor == "":
+        return 0
+    
+    lista = [x.strip() for x in str(valor).split(",") if x.strip() != ""]
+    
+    return len(lista)
+
+
+comparacion["ConteoCoincidenciasIntermedia"] = comparacion["Coincidencias_Intermedia"].apply(contar_fechas)
+comparacion["ConteoCoincidenciasSemanal"] = comparacion["Coincidencias_Semanal"].apply(contar_fechas)
 
 # ==================================
 # GUARDAR RESULTADOS
