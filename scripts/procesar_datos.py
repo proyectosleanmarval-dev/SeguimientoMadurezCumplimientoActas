@@ -184,6 +184,13 @@ df_semanal = df_semanal[
 ]
 
 # ==================================
+# ELIMINAR FECHAS DUPLICADAS (CORRECCIÓN)
+# ==================================
+
+df_intermedia = df_intermedia.drop_duplicates(subset=["Proyecto","Fecha de Fin"])
+df_semanal = df_semanal.drop_duplicates(subset=["Proyecto","Fecha de Fin"])
+
+# ==================================
 # AGRUPAR INTERMEDIAS
 # ==================================
 
@@ -191,7 +198,7 @@ intermedia = (
     df_intermedia
     .sort_values("Fecha de Fin")
     .groupby("Proyecto")["Fecha de Fin"]
-    .apply(lambda x: ", ".join(x.dt.strftime("%Y-%m-%d")))
+    .apply(lambda x: ", ".join(sorted(x.dt.strftime("%Y-%m-%d").unique())))
     .reset_index()
 )
 
@@ -205,7 +212,7 @@ semanal = (
     df_semanal
     .sort_values("Fecha de Fin")
     .groupby("Proyecto")["Fecha de Fin"]
-    .apply(lambda x: ", ".join(x.dt.strftime("%Y-%m-%d")))
+    .apply(lambda x: ", ".join(sorted(x.dt.strftime("%Y-%m-%d").unique())))
     .reset_index()
 )
 
