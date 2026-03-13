@@ -373,7 +373,8 @@ if GRAFICO_DISPONIBLE:
         df_grafico["CumplimientoSemanal"],
         h,
         color=[color(v) for v in df_grafico["CumplimientoSemanal"]],
-        edgecolor="black",
+        edgecolor="blue",
+        linewidth=2,
         label="Semanal"
     )
 
@@ -382,7 +383,8 @@ if GRAFICO_DISPONIBLE:
         df_grafico["CumplimientoIntermedia"],
         h,
         color=[color(v) for v in df_grafico["CumplimientoIntermedia"]],
-        edgecolor="black",
+        edgecolor="purple",
+        linewidth=2,
         label="Intermedia"
     )
 
