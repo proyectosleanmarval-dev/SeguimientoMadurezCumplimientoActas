@@ -4,8 +4,13 @@ from datetime import timedelta
 import calendar
 import os
 
-# intentar importar matplotlib (si no existe no rompe el script)
+# ==================================
+# CONFIGURAR MATPLOTLIB PARA SERVIDOR
+# ==================================
+
 try:
+    import matplotlib
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     GRAFICO_DISPONIBLE = True
 except ModuleNotFoundError:
@@ -31,24 +36,10 @@ ANIO = 2026
 MES = 3
 
 festivos = [
-    "2026-01-01",
-    "2026-01-12",
-    "2026-03-23",
-    "2026-04-02",
-    "2026-04-03",
-    "2026-05-01",
-    "2026-05-18",
-    "2026-06-08",
-    "2026-06-15",
-    "2026-06-29",
-    "2026-07-20",
-    "2026-08-07",
-    "2026-08-17",
-    "2026-10-12",
-    "2026-11-02",
-    "2026-11-16",
-    "2026-12-08",
-    "2026-12-25",
+    "2026-01-01","2026-01-12","2026-03-23","2026-04-02","2026-04-03",
+    "2026-05-01","2026-05-18","2026-06-08","2026-06-15","2026-06-29",
+    "2026-07-20","2026-08-07","2026-08-17","2026-10-12","2026-11-02",
+    "2026-11-16","2026-12-08","2026-12-25"
 ]
 
 festivos = [pd.to_datetime(f) for f in festivos]
@@ -107,6 +98,7 @@ def es_habil(fecha):
         return False
     return True
 
+
 def obtener_dos_siguientes(fecha):
     siguientes = []
     for i in range(1,3):
@@ -114,6 +106,7 @@ def obtener_dos_siguientes(fecha):
         if siguiente.month == MES:
             siguientes.append(siguiente)
     return siguientes
+
 
 def siguiente_habil(fecha):
     siguiente = fecha + timedelta(days=1)
@@ -162,6 +155,7 @@ def calcular_posibles(dia_base):
     posibles = sorted(set(posibles))
 
     return ", ".join([f.strftime("%Y-%m-%d") for f in posibles])
+
 
 # ==================================
 # CALENDARIO TEORICO
@@ -244,23 +238,13 @@ semanal.columns = ["Proyecto", "Fechas_Semanal"]
 # RESULTADO REAL
 # ==================================
 
-resultado_real = pd.merge(
-    intermedia,
-    semanal,
-    on="Proyecto",
-    how="outer"
-)
+resultado_real = pd.merge(intermedia,semanal,on="Proyecto",how="outer")
 
 # ==================================
 # COMPARACION
 # ==================================
 
-comparacion = pd.merge(
-    df_proyectos,
-    resultado_real,
-    on="Proyecto",
-    how="outer"
-)
+comparacion = pd.merge(df_proyectos,resultado_real,on="Proyecto",how="outer")
 
 # ==================================
 # FUNCION COINCIDENCIAS
@@ -335,7 +319,7 @@ resultado_real.to_excel(salida_real, index=False)
 comparacion.to_excel(salida_comparado, index=False)
 
 # ==================================
-# GRAFICO (SI MATPLOTLIB EXISTE)
+# GRAFICO
 # ==================================
 
 if GRAFICO_DISPONIBLE:
@@ -343,7 +327,10 @@ if GRAFICO_DISPONIBLE:
     print("Generando gráfico...")
 
     df_grafico = comparacion.copy()
-    df_grafico = df_grafico[df_grafico["Estado"].str.upper() == "EJECUCIÓN"]
+
+    df_grafico = df_grafico[
+        df_grafico["Estado"].fillna("").str.upper() == "EJECUCIÓN"
+    ]
 
     df_grafico["CumplimientoSemanal"] *= 100
     df_grafico["CumplimientoIntermedia"] *= 100
@@ -370,13 +357,13 @@ if GRAFICO_DISPONIBLE:
 
     fig, ax = plt.subplots(figsize=(12, max(6, len(proyectos)*0.6)))
 
-    b1 = ax.barh(y-h/2, df_grafico["CumplimientoSemanal"], h,
-                 color=[color(v) for v in df_grafico["CumplimientoSemanal"]],
-                 label="Semanal")
+    ax.barh(y-h/2, df_grafico["CumplimientoSemanal"], h,
+            color=[color(v) for v in df_grafico["CumplimientoSemanal"]],
+            label="Semanal")
 
-    b2 = ax.barh(y+h/2, df_grafico["CumplimientoIntermedia"], h,
-                 color=[color(v) for v in df_grafico["CumplimientoIntermedia"]],
-                 label="Intermedia")
+    ax.barh(y+h/2, df_grafico["CumplimientoIntermedia"], h,
+            color=[color(v) for v in df_grafico["CumplimientoIntermedia"]],
+            label="Intermedia")
 
     ax.axvline(80, linestyle="--", label="Meta 80%")
 
@@ -394,5 +381,8 @@ if GRAFICO_DISPONIBLE:
     plt.savefig("output/grafico_cumplimiento_proyectos.png")
 
     plt.close()
+
+    if os.path.exists("output/grafico_cumplimiento_proyectos.png"):
+        print("Gráfico generado correctamente")
 
 print("Archivos generados correctamente")
