@@ -19,20 +19,25 @@ jobs:
       - name: Instalar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Instalar dependencias
         run: |
-          pip install pandas openpyxl
+          pip install pandas numpy openpyxl matplotlib
 
-      - name: Ejecutar procesamiento
+      - name: Ejecutar script de procesamiento
         run: |
           python scripts/procesar_datos.py
 
-      - name: Guardar resultados
+      - name: Verificar archivos generados
+        run: |
+          echo "Contenido carpeta output:"
+          ls -la output
+
+      - name: Guardar resultados en el repositorio
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add output/*.xlsx
+          git add output/*
           git diff --cached --quiet || git commit -m "Actualizar resultados reuniones"
           git push
