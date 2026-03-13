@@ -261,7 +261,7 @@ resultado_real = pd.merge(intermedia,semanal,on="Proyecto",how="outer")
 comparacion = pd.merge(df_proyectos,resultado_real,on="Proyecto",how="outer")
 
 # ==================================
-# FUNCION COINCIDENCIAS
+# COINCIDENCIAS
 # ==================================
 
 def coincidencias(lista1,lista2):
@@ -327,7 +327,7 @@ resultado_real.to_excel(salida_real,index=False)
 comparacion.to_excel(salida_comparado,index=False)
 
 # ==================================
-# GRAFICO
+# GRAFICO PROFESIONAL
 # ==================================
 
 if GRAFICO_DISPONIBLE:
@@ -353,50 +353,63 @@ if GRAFICO_DISPONIBLE:
     def color(v):
 
         if v < 50:
-            return "red"
+            return "#c0392b"
         elif v < 75:
-            return "yellow"
+            return "#f1c40f"
         elif v < 90:
-            return "orange"
+            return "#e67e22"
         else:
-            return "green"
+            return "#27ae60"
 
     proyectos = df_grafico["Proyecto"]
 
     y = np.arange(len(proyectos))
-    h = 0.35
+    h = 0.32
 
-    fig, ax = plt.subplots(figsize=(12,max(6,len(proyectos)*0.6)))
+    fig, ax = plt.subplots(figsize=(13,max(6,len(proyectos)*0.6)))
 
-    ax.barh(
+    bars1 = ax.barh(
         y-h/2,
         df_grafico["CumplimientoSemanal"],
         h,
         color=[color(v) for v in df_grafico["CumplimientoSemanal"]],
-        edgecolor="blue",
+        edgecolor="#1f3a93",
         linewidth=2,
-        label="Semanal"
+        label="Reunión Semanal"
     )
 
-    ax.barh(
+    bars2 = ax.barh(
         y+h/2,
         df_grafico["CumplimientoIntermedia"],
         h,
         color=[color(v) for v in df_grafico["CumplimientoIntermedia"]],
-        edgecolor="purple",
+        edgecolor="#145a32",
         linewidth=2,
-        label="Intermedia"
+        label="Reunión Intermedia"
     )
+
+    for bars in [bars1,bars2]:
+        for bar in bars:
+            width = bar.get_width()
+            ax.text(
+                width + 1,
+                bar.get_y() + bar.get_height()/2,
+                f"{width:.0f}%",
+                va="center",
+                fontsize=9
+            )
 
     ax.axvline(80,linestyle="--",color="black",label="Meta 80%")
 
     ax.set_yticks(y)
     ax.set_yticklabels(proyectos)
 
-    ax.set_xlim(0,100)
+    ax.set_xlim(0,105)
 
     ax.set_xlabel("Cumplimiento (%)")
-    ax.set_title("Cumplimiento de Reuniones por Proyecto")
+    ax.set_title("Cumplimiento de Reuniones por Proyecto",fontsize=14,fontweight="bold")
+
+    ax.grid(axis="x",linestyle="--",alpha=0.4)
 
     ax.legend()
 
@@ -406,7 +419,6 @@ if GRAFICO_DISPONIBLE:
 
     plt.close()
 
-    if os.path.exists("output/grafico_cumplimiento_proyectos.png"):
-        print("Gráfico generado correctamente")
+    print("Gráfico generado correctamente")
 
 print("Archivos generados correctamente")
