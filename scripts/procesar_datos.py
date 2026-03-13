@@ -32,8 +32,8 @@ salida_comparado = "output/calendario_comparado.xlsx"
 # PARAMETROS
 # ==================================
 
-ANIO = 2026
-MES = 1
+ANIO = 2025
+MES = 11
 
 festivos = [
 "2026-01-01","2026-01-12","2026-03-23","2026-04-02","2026-04-03",
